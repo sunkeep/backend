@@ -11,7 +11,7 @@ cursor = db.cursor()
 
 @app.route('/', methods=['GET'])
 def hello_world():
-    return 'Hello World!'
+    return 'Hello World!@'
 
 @app.route('/panels/status', methods=['GET'])
 def get_panel_statuses():
