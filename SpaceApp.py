@@ -2,10 +2,11 @@ from flask import Flask
 from flask import request
 import MySQLdb
 import string
+import secret
 
 app = Flask(__name__)
 
-db = MySQLdb.connect(host="95.46.99.185", user="mysql_user", passwd="MyNewPass", db="nasa_db", charset='utf8')
+db = MySQLdb.connect(host=secret.host, user=secret.user, passwd=secret.passwd, db=secret.db, charset='utf8')
 cursor = db.cursor()
 
 
@@ -15,7 +16,7 @@ def hello_world():
 
 @app.route('/panels/status', methods=['GET'])
 def get_panel_statuses():
-    sql = ""
+    sql = "SELECT * FROM nasa_sunrise"
     cursor.execute(sql)
     data = cursor.fetchall()
     return '{statuses:[]}'
