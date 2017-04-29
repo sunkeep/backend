@@ -1,3 +1,4 @@
+import itertools
 from flask import Flask
 from flask import request
 import MySQLdb
@@ -10,6 +11,11 @@ app = Flask(__name__)
 db = MySQLdb.connect(host=secret.host, user=secret.user, passwd=secret.passwd, db=secret.db, charset='utf8')
 cursor = db.cursor()
 
+
+def dictfetchall(curs):
+    desc = curs.description
+    return [dict(itertools.izip([col[0] for col in desc], row))
+            for row in curs.fetchall()]
 
 @app.route('/', methods=['GET'])
 def hello_world():
@@ -67,10 +73,7 @@ def get_monitoring_data(timestamp):
     INNER JOIN nasa_wind_speed ON nasa_humidity.timestamp=nasa_wind_speed.timestamp
     WHERE `nasa_humidity`.timestamp=%d""" % timestamp
     cursor.execute(sql)
-    values = cursor.fetchall()
-    data = {'humidity': float(values[0][0]), 'barometric_pressure': float(values[0][1]),
-            'solar_radiation': float(values[0][2]), 'temperature': float(values[0][3]),
-            'wind_direction': float(values[0][4]), 'wind_speed': float(values[0][5])}
+    data = dictfetchall(cursor)
     res = json.dumps(data)
     return res
 
@@ -92,9 +95,9 @@ def get_weather():
     error = None
     if request.method == 'GET':
         name = request.args.get('timestamp')
-        sql = "SELECT * FROM nasa_db.nasa_humidity WHERE `timestamp` = %d" % name
+        sql = "SELECT * FROM nasa_db.nasa_humidity WHERE `timestamp` = %d" % int(name)
         cursor.execute(sql)
-        data = cursor.fetchall()
+        data = dictfetchall(cursor)
         res = json.dumps(data)
         return res
     else:
@@ -102,8 +105,16 @@ def get_weather():
 
 
 # TODO get today sun status
+def get_today_sun_status():
+    return True
 
 
+def get_sun_status_by_timestamp(timestamp):
+
+    # TODO 1: Convert timestamp to YYYY-MM-DD
+    # TODO 2: Get sunrise timestamp and calc passed sunday amount.
+    # TODO 3: Get sunset timestamp and calc e
+    return True
 
 if __name__ == '__main__':
-    app.run(host='127.0.0.1')
+    app.run(host='95.46.99.185')
