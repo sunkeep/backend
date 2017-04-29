@@ -91,9 +91,8 @@ def get_weather():
     # return res
     error = None
     if request.method == 'GET':
-        # name = request.form['timestamp']
-        current_timestamp = 1475243723
-        sql = "SELECT * FROM nasa_db.nasa_humidity WHERE `timestamp` = %d" % current_timestamp
+        name = request.args.get('timestamp')
+        sql = "SELECT * FROM nasa_db.nasa_humidity WHERE `timestamp` = %d" % name
         cursor.execute(sql)
         data = cursor.fetchall()
         res = json.dumps(data)
