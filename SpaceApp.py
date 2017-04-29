@@ -5,7 +5,7 @@ import MySQLdb
 import string
 import secret
 import json
-import tasks
+# import tasks
 
 app = Flask(__name__)
 
