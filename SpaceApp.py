@@ -5,6 +5,7 @@ import MySQLdb
 import string
 import secret
 import json
+import tasks
 
 app = Flask(__name__)
 
@@ -55,7 +56,7 @@ def add_panel():
     else:
         return "error"
 
-
+      
 #TODO Add sunrise\sunset and Cloudiness
 # and kill my self for this code.
 def get_monitoring_data(timestamp):
@@ -94,8 +95,21 @@ def get_weather():
     # return res
     error = None
     if request.method == 'GET':
-        name = request.args.get('timestamp')
-        sql = "SELECT * FROM nasa_db.nasa_humidity WHERE `timestamp` = %d" % int(name)
+        timestamp = request.args.get('timestamp')
+        sql = "SELECT * FROM nasa_db.nasa_humidity WHERE `timestamp` = %d" % int(timestamp)
+        cursor.execute(sql)
+        data = dictfetchall(cursor)
+        res = json.dumps(data)
+        return res
+    else:
+        return "error"
+      
+      
+@app.route('/panels/weather/<int:timestamp>', methods=['GET'])
+def get_weather(timestamp):
+    error = None
+    if request.method == 'GET':
+        sql = "SELECT `value` FROM nasa_db.nasa_humidity WHERE `timestamp` < %d" % timestamp
         cursor.execute(sql)
         data = dictfetchall(cursor)
         res = json.dumps(data)
