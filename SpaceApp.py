@@ -4,6 +4,7 @@ import MySQLdb
 import string
 import secret
 import json
+import tasks
 
 app = Flask(__name__)
 
@@ -50,17 +51,11 @@ def add_panel():
 
 
 # TODO get current weather (Temperature | Pressure | Humidity | Solar radiation | Cloudiness | Sunrise / sunset | Wind speed | wind direction)
-@app.route('/panel/weather', methods=['GET'])
-def get_weather():
-    # sql = "SELECT * FROM nasa_db.nasa_humidity WHERE `timestamp` < 1473010221"
-    # cursor.execute(sql)
-    # data = cursor.fetchall()
-    # res = json.dumps(data)
-    # return res
+@app.route('/panels/weather/<int:timestamp>', methods=['GET'])
+def get_weather(timestamp):
     error = None
     if request.method == 'GET':
-        name = request.form['timestamp']
-        sql = "SELECT * FROM nasa_db.nasa_humidity WHERE `timestamp` < %d" % name
+        sql = "SELECT `value` FROM nasa_db.nasa_humidity WHERE `timestamp` < %d" % timestamp
         cursor.execute(sql)
         data = cursor.fetchall()
         res = json.dumps(data)
