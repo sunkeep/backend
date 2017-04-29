@@ -3,6 +3,7 @@ from flask import request
 import MySQLdb
 import string
 import secret
+import json
 
 app = Flask(__name__)
 
@@ -19,7 +20,8 @@ def get_panel_statuses():
     sql = "SELECT * FROM nasa_sunrise"
     cursor.execute(sql)
     data = cursor.fetchall()
-    return '{statuses:[]}'
+    res = json.dumps(data)
+    return res
 
 @app.route('/panels/status/<int:panel_id>', methods=['GET'])
 def get_panel_status(panel_id):
