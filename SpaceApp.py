@@ -23,6 +23,10 @@ def dictfetchall(curs):
             for row in curs.fetchall()]
 
 
+def format_float(num):
+    return ('%i' if num == int(num) else '%s') % num
+
+
 @app.route('/', methods=['GET'])
 def hello_world():
     return 'Hello World!@'
@@ -84,6 +88,9 @@ def get_monitoring_data(timestamp):
     WHERE `nasa_humidity`.timestamp=%d""" % timestamp
     cursor.execute(sql)
     data = dictfetchall(cursor)
+    for key, value in data[0].items():
+        data[0][key] = format_float(float(data[0][key]))
+    print string
     res = json.dumps(data)
     return res
 
