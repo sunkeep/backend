@@ -136,16 +136,16 @@ def get_sunrise_time_by_timestamp(timestamp):
     sql = """SELECT nasa_sunrise.value as sunrise_at FROM nasa_sunrise WHERE timestamp = %d""" % timestamp
     cursor.execute(sql)
     sunrise = dictfetchall(cursor)
-    sunrise[0]['sunrise_at'] = sunrise[0]['sunrise_at'][:1] + ':' + sunrise[0]['sunrise_at'][1:] + ':00'
-    return sunrise
+    sunrise_date = datetime.datetime.fromtimestamp(timestamp).replace(hour=int(sunrise[0]['sunrise_at'][:1]), minute=int(sunrise[0]['sunrise_at'][1:]))
+    return sunrise_date
 
 
 def get_sunset_time_by_timestamp(timestamp):
     sql = """SELECT nasa_sunset.value as sunset_at FROM nasa_sunset WHERE timestamp = %d""" % timestamp
     cursor.execute(sql)
     sunset = dictfetchall(cursor)
-    sunset[0]['sunset_at'] = sunset[0]['sunset_at'][:2] + ':' + sunset[0]['sunset_at'][2:] + ':00'
-    return sunset
+    sunset_date = datetime.datetime.fromtimestamp(timestamp).replace(hour=int(sunset[0]['sunset_at'][:2]), minute=int(sunset[0]['sunset_at'][2:]))
+    return sunset_date
 
 
 # TODO Move it monitoring results
@@ -153,10 +153,17 @@ def get_sunset_time_by_timestamp(timestamp):
 def get_sun_status_by_timestamp():
     timestamp = request.args.get('timestamp')
     if timestamp is None:
+        # If no timestamp specified -> get last existed timestamp from dataset.
         timestamp = 1483178400
-    data = get_sunrise_time_by_timestamp(timestamp)[0]
-    data.update(get_sunset_time_by_timestamp(timestamp)[0])
-    # TODO Calculate daytime left based on current time and sunset_at from data
+    sunrise_date = get_sunrise_time_by_timestamp(timestamp)
+    sunset_date = get_sunset_time_by_timestamp(timestamp)
+    current_date = datetime.datetime.fromtimestamp(timestamp)
+    daytime_passed = str(current_date - sunrise_date)
+    daytime_left = str(sunset_date - current_date)
+    data = {'sunset_at': sunset_date.isoformat(),
+            'sunrise_at': sunrise_date.isoformat(),
+            'daytime_passed': daytime_passed,
+            'daytime_left': daytime_left}
     res = json.dumps(data)
     return res
 
