@@ -156,7 +156,7 @@ def get_sun_status_by_timestamp():
         timestamp = 1483178400
     data = get_sunrise_time_by_timestamp(timestamp)[0]
     data.update(get_sunset_time_by_timestamp(timestamp)[0])
-    # TODO Caulculate daytime left based on current time and sunset_at from data
+    # TODO Calculate daytime left based on current time and sunset_at from data
     res = json.dumps(data)
     return res
 
