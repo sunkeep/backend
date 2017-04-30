@@ -6,6 +6,8 @@ import string
 import secret
 import datetime
 import json
+import time
+import datetime
 
 # import tasks
 
@@ -116,16 +118,25 @@ def insert_to_db(sqlPressure):
     db.commit()
 
 
+
 @app.route('/sensor/value/add', methods=['POST'])
 def add_sensor_data():
     error = None
     if request.method == 'POST':
-        temperature = request.form['temperature']
-        pressure = request.form['pressure']
-        light = request.form['light']
-        insert_to_db("INSERT INTO nasa_db.real_pressure (timestamp, date, time, value, text) VALUES ('1', '', '', '" + pressure + "', null);")
-        insert_to_db("INSERT INTO nasa_db.real_temperature (timestamp, date, time, value, text) VALUES ('1', '', '', '" + temperature + "', null);")
-        insert_to_db("INSERT INTO nasa_db.real_light (timestamp, date, time, value, text) VALUES ('1', '', '', '" + light + "', null);")
+        json = request.json
+        temperature = json['temperature']
+        pressure = json['pressure']
+        light = json['light']
+        ts = time.time()
+        dateValue = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d')
+        timeValue = datetime.datetime.fromtimestamp(ts).strftime('%H:%M:%S')
+        timestamp = str(int(ts))
+        insert_to_db(
+            "INSERT INTO nasa_db.real_pressure (timestamp, date, time, value, text) VALUES ('" + timestamp + "', '" + dateValue + "', '" + timeValue + "', '" + pressure + "', null);")
+        insert_to_db(
+            "INSERT INTO nasa_db.real_temperature (timestamp, date, time, value, text) VALUES ('" + timestamp + "', '" + dateValue + "', '" + timeValue + "', '" + temperature + "', null);")
+        insert_to_db(
+            "INSERT INTO nasa_db.real_light (timestamp, date, time, value, text) VALUES ('" + timestamp + "', '" + dateValue + "', '" + timeValue + "', '" + light + "', null);")
         db.close()
         return "saved"
     else:
@@ -169,4 +180,4 @@ def get_sun_status_by_timestamp():
 
 
 if __name__ == '__main__':
-    app.run(host='95.46.99.185')
+    app.run(host='95.46.99.185',debug=True)
