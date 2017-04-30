@@ -1,17 +1,17 @@
-
+import SpaceApp
 
 # TODO implement
-@app.route('/tasks/add', methods=['POST'])
+#@app.route('/tasks/add', methods=['POST'])
 def task_add():
     return "true"
 
 # TODO implement
-@app.route('/tasks/check', methods=['GET'])
+#@app.route('/tasks/check', methods=['GET'])
 def task_check():
     return "true"
 
 # TODO implement
-@app.route('/tasks/all', methods=['GET'])
+#@app.route('/tasks/all', methods=['GET'])
 def task_get_all():
     return "true"
 
