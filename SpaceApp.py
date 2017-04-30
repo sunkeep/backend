@@ -4,6 +4,7 @@ from flask import request
 import MySQLdb
 import string
 import secret
+import datetime
 import json
 
 # import tasks
@@ -84,50 +85,36 @@ def get_monitoring_data(timestamp):
     res = json.dumps(data)
     return res
 
+@app.route('/sundata', methods= ['GET'])
+def get_sundata_by_timestamp():
+    timestamp = request.args.get('timestamp')
+    return timestamp
+
 
 # TODO get current weather (Temperature | Pressure | Humidity | Solar radiation | Cloudiness | Sunrise / sunset | Wind speed | wind direction)
 @app.route('/monitoring/current', methods=['GET'])
 def get_current_monitoring_data():
-    last_timestamp_exists = 1475243723
+    last_timestamp_exists = 1483264501
     res = get_monitoring_data(last_timestamp_exists)
     return res
 
 
 @app.route('/panel/weather', methods=['GET'])
 def get_weather():
-    # sql = "SELECT * FROM nasa_db.nasa_humidity WHERE `timestamp` < 1473010221"
-    # cursor.execute(sql)
-    # data = cursor.fetchall()
-    # res = json.dumps(data)
-    # return res
-    error = None
-    if request.method == 'GET':
-        timestamp = request.args.get('timestamp')
-        sql = "SELECT * FROM nasa_db.nasa_humidity WHERE `timestamp` = %d" % int(timestamp)
-        cursor.execute(sql)
-        data = dictfetchall(cursor)
-        res = json.dumps(data)
-        return res
-    else:
-        return "error"
+    timestamp = request.args.get('timestamp')
+    if timestamp is None:
+        timestamp = 1475243723
+    sql = "SELECT * FROM nasa_db.nasa_humidity WHERE `timestamp` = %d" % int(timestamp)
+    cursor.execute(sql)
+    data = dictfetchall(cursor)
+    res = json.dumps(data)
+    return res
 
 
-# @app.route('/panels/weather/<int:timestamp>', methods=['GET'])
-# def get_weather(timestamp):
-#     error = None
-#     if request.method == 'GET':
-#         sql = "SELECT `value` FROM nasa_db.nasa_humidity WHERE `timestamp` < %d" % timestamp
-#         cursor.execute(sql)
-#         data = dictfetchall(cursor)
-#         res = json.dumps(data)
-#         return res
-#     else:
-#         return "error"
+def insert_to_db(sqlPressure):
+    cursor.execute(sqlPressure)
+    db.commit()
 
-
-# TODO get today sun status
-def get_today_sun_status():
-    return True
 
 @app.route('/sensor/value/add', methods=['POST'])
 def add_sensor_data():
@@ -145,16 +132,33 @@ def add_sensor_data():
         return "error"
 
 
-def insert_to_db(sqlPressure):
-    cursor.execute(sqlPressure)
-    db.commit()
+def get_sunrise_time_by_timestamp(timestamp):
+    sql = """SELECT nasa_sunrise.value as sunrise_at FROM nasa_sunrise WHERE timestamp = %d""" % timestamp
+    cursor.execute(sql)
+    sunrise = dictfetchall(cursor)
+    sunrise[0]['sunrise_at'] = sunrise[0]['sunrise_at'][:1] + ':' + sunrise[0]['sunrise_at'][1:] + ':00'
+    return sunrise
 
 
-def get_sun_status_by_timestamp(timestamp):
-    # TODO 1: Convert timestamp to YYYY-MM-DD
-    # TODO 2: Get sunrise timestamp and calc passed sunday amount.
-    # TODO 3: Get sunset timestamp and calc e
-    return True
+def get_sunset_time_by_timestamp(timestamp):
+    sql = """SELECT nasa_sunset.value as sunset_at FROM nasa_sunset WHERE timestamp = %d""" % timestamp
+    cursor.execute(sql)
+    sunset = dictfetchall(cursor)
+    sunset[0]['sunset_at'] = sunset[0]['sunset_at'][:2] + ':' + sunset[0]['sunset_at'][2:] + ':00'
+    return sunset
+
+
+# TODO Move it monitoring results
+@app.route('/sunstatus', methods=['GET'])
+def get_sun_status_by_timestamp():
+    timestamp = request.args.get('timestamp')
+    if timestamp is None:
+        timestamp = 1483178400
+    data = get_sunrise_time_by_timestamp(timestamp)[0]
+    data.update(get_sunset_time_by_timestamp(timestamp)[0])
+    # TODO Caulculate daytime left based on current time and sunset_at from data
+    res = json.dumps(data)
+    return res
 
 
 if __name__ == '__main__':
