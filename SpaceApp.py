@@ -87,7 +87,8 @@ def get_monitoring_data(timestamp):
     res = json.dumps(data)
     return res
 
-@app.route('/sundata', methods= ['GET'])
+
+@app.route('/sundata', methods=['GET'])
 def get_sundata_by_timestamp():
     timestamp = request.args.get('timestamp')
     return timestamp
@@ -113,10 +114,10 @@ def get_weather():
     return res
 
 
-def insert_to_db(sqlPressure):
-    cursor.execute(sqlPressure)
+def insert_to_db(sql):
+    print sql
+    cursor.execute(sql)
     db.commit()
-
 
 
 @app.route('/sensor/value/add', methods=['POST'])
@@ -124,9 +125,9 @@ def add_sensor_data():
     error = None
     if request.method == 'POST':
         json = request.json
-        temperature = json['temperature']
-        pressure = json['pressure']
-        light = json['light']
+        temperature = str(json['temperature'])
+        pressure = str(json['pressure'])
+        light = str(json['light'])
         ts = time.time()
         dateValue = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d')
         timeValue = datetime.datetime.fromtimestamp(ts).strftime('%H:%M:%S')
@@ -137,7 +138,6 @@ def add_sensor_data():
             "INSERT INTO nasa_db.real_temperature (timestamp, date, time, value, text) VALUES ('" + timestamp + "', '" + dateValue + "', '" + timeValue + "', '" + temperature + "', null);")
         insert_to_db(
             "INSERT INTO nasa_db.real_light (timestamp, date, time, value, text) VALUES ('" + timestamp + "', '" + dateValue + "', '" + timeValue + "', '" + light + "', null);")
-        db.close()
         return "saved"
     else:
         return "error"
@@ -173,4 +173,4 @@ def get_sun_status_by_timestamp():
 
 
 if __name__ == '__main__':
-    app.run(host='95.46.99.185',debug=True)
+    app.run(host='95.46.99.185', debug=True)
