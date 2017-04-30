@@ -193,6 +193,22 @@ def get_sun_status_by_timestamp():
     res = json.dumps(data)
     return res
 
+@app.route('/schedule/status', methods=['GET', 'POST'])
+def get_schedule_statuses():
+    if request.method == 'GET':
+        sql = "SELECT * FROM schedule_status"
+        cursor.execute(sql)
+        data = dictfetchall(cursor)
+        res = json.dumps(data)
+        return res
+    elif request.method == 'POST':
+        schedule_id = request.args.get('id')
+        status_to_set = request.args.get('status_type')
+        sql = "UPDATE schedule_status SET status_type = %d WHERE id = %d" % (int(status_to_set), int(schedule_id))
+        cursor.execute(sql)
+        data = dictfetchall(cursor)
+        res = json.dumps(data)
+        return res
 
 if __name__ == '__main__':
-    app.run(host='95.46.99.185', debug=True)
+   app.run(host='95.46.99.185', debug=True)
