@@ -88,17 +88,15 @@ def get_monitoring_data(timestamp):
     return res
 
 
-@app.route('/sundata', methods=['GET'])
-def get_sundata_by_timestamp():
-    timestamp = request.args.get('timestamp')
-    return timestamp
-
 
 # TODO get current weather (Temperature | Pressure | Humidity | Solar radiation | Cloudiness | Sunrise / sunset | Wind speed | wind direction)
 @app.route('/monitoring/current', methods=['GET'])
 def get_current_monitoring_data():
-    last_timestamp_exists = 1483264501
-    res = get_monitoring_data(last_timestamp_exists)
+    timestamp = request.args.get('timestamp')
+    if timestamp is None:
+        # If no timestamp specified -> get last existed timestamp from dataset.
+        timestamp = 1475243723
+    res = get_monitoring_data(timestamp)
     return res
 
 
@@ -106,6 +104,7 @@ def get_current_monitoring_data():
 def get_weather():
     timestamp = request.args.get('timestamp')
     if timestamp is None:
+        # If no timestamp specified -> get last existed timestamp from dataset.
         timestamp = 1475243723
     sql = "SELECT * FROM nasa_db.nasa_humidity WHERE `timestamp` = %d" % int(timestamp)
     cursor.execute(sql)
@@ -144,19 +143,28 @@ def add_sensor_data():
 
 
 def get_sunrise_time_by_timestamp(timestamp):
-    sql = """SELECT nasa_sunrise.value as sunrise_at FROM nasa_sunrise WHERE timestamp = %d""" % timestamp
+    date = get_date_by_timestamp(timestamp)
+    sql = """SELECT nasa_sunrise.value as sunrise_at FROM nasa_sunrise WHERE date = '%s'""" % date
     cursor.execute(sql)
     sunrise = dictfetchall(cursor)
-    sunrise_date = datetime.datetime.fromtimestamp(timestamp).replace(hour=int(sunrise[0]['sunrise_at'][:1]), minute=int(sunrise[0]['sunrise_at'][1:]))
+    sunrise_date = datetime.datetime.fromtimestamp(timestamp).replace(hour=int(sunrise[0]['sunrise_at'][:1]),
+                                                                      minute=int(sunrise[0]['sunrise_at'][1:]))
     return sunrise_date
 
 
 def get_sunset_time_by_timestamp(timestamp):
-    sql = """SELECT nasa_sunset.value as sunset_at FROM nasa_sunset WHERE timestamp = %d""" % timestamp
+    date = get_date_by_timestamp(timestamp)
+    sql = """SELECT nasa_sunset.value as sunset_at FROM nasa_sunset WHERE date = '%s'""" % date
     cursor.execute(sql)
     sunset = dictfetchall(cursor)
-    sunset_date = datetime.datetime.fromtimestamp(timestamp).replace(hour=int(sunset[0]['sunset_at'][:2]), minute=int(sunset[0]['sunset_at'][2:]))
+    sunset_date = datetime.datetime.fromtimestamp(timestamp).replace(hour=int(sunset[0]['sunset_at'][:2]),
+                                                                     minute=int(sunset[0]['sunset_at'][2:]))
     return sunset_date
+
+
+def get_date_by_timestamp(timestamp):
+    date = str(datetime.datetime.fromtimestamp(float(timestamp)).strftime('%Y-%m-%d'))
+    return date
 
 
 # TODO Move it monitoring results
